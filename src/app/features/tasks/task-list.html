@@ -1,1 +1,169 @@
-<h1 class="page-title">Feladatok</h1>
+<ng-container *ngIf="vm$ | async as vm">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Feladatok</h1>
+      <p class="page-subtitle" aria-live="polite">
+        {{ vm.subtitle
+        }}<span class="subtitle-status" *ngIf="vm.subtitleStatus"> · {{ vm.subtitleStatus }}</span>
+      </p>
+    </div>
+    <a class="btn btn-primary" routerLink="/tasks/new">+ Új feladat</a>
+  </header>
+
+  <form class="filters" [formGroup]="form" role="search" aria-label="Feladatok keresése és szűrése">
+    <div class="field field-search">
+      <label for="task-q">Keresés</label>
+      <input
+        #searchInput
+        id="task-q"
+        type="search"
+        formControlName="q"
+        placeholder="Keresés a feladatok között..."
+        autocomplete="off"
+        maxlength="100"
+      />
+    </div>
+
+    <div class="field field-status">
+      <label for="task-status">Állapot</label>
+      <select id="task-status" formControlName="statusId">
+        <option value="">Minden állapot</option>
+        <option *ngFor="let status of vm.statuses; trackBy: trackById" [value]="status.id">
+          {{ status.name }}
+        </option>
+      </select>
+    </div>
+
+    <div class="field field-assignee">
+      <label for="task-assignee">Felelős</label>
+      <select id="task-assignee" formControlName="assigneeId">
+        <option value="">Mindenki</option>
+        <option *ngFor="let user of vm.users; trackBy: trackById" [value]="user.id">
+          {{ user.name }}
+        </option>
+      </select>
+    </div>
+
+    <div class="field field-project">
+      <label for="task-project">Projekt</label>
+      <select id="task-project" formControlName="projectId">
+        <option value="">Mindegyik</option>
+        <option *ngFor="let project of vm.projects; trackBy: trackById" [value]="project.id">
+          {{ project.name }}
+        </option>
+      </select>
+    </div>
+  </form>
+
+  <section #listArea class="list-area" tabindex="-1" [attr.aria-busy]="vm.busy">
+    <ng-container *ngIf="vm.view === 'rows'; else noRows">
+      <div class="table-card" [class.is-busy]="vm.busy">
+        <table class="task-table" role="table">
+          <caption class="visually-hidden">
+            Feladatok listája
+          </caption>
+          <colgroup>
+            <col class="col-title" />
+            <col class="col-status" />
+            <col class="col-assignee" />
+            <col class="col-due" />
+            <col class="col-action" />
+          </colgroup>
+          <thead role="rowgroup">
+            <tr role="row">
+              <th role="columnheader" scope="col">Feladat</th>
+              <th role="columnheader" scope="col">Állapot</th>
+              <th role="columnheader" scope="col">Felelős</th>
+              <th role="columnheader" scope="col">Határidő</th>
+              <th role="columnheader" scope="col">Művelet</th>
+            </tr>
+          </thead>
+          <tbody role="rowgroup">
+            <tr *ngFor="let row of vm.rows; trackBy: trackById" role="row">
+              <td role="cell" class="c-title">
+                <strong class="title">{{ row.title }}</strong>
+                <span class="meta">#{{ row.id }} · {{ row.projectName }}</span>
+              </td>
+              <td role="cell" class="c-status">
+                <span class="pill status-pill" [style.--pill]="row.statusColor">{{ row.statusName }}</span>
+              </td>
+              <td role="cell" class="c-assignee">{{ row.assigneeName }}</td>
+              <td role="cell" class="c-due">
+                <time [attr.datetime]="row.dueDate">
+                  <span class="d-short">{{ row.dueDate | date: 'MM.dd.' }}</span>
+                  <span class="d-full">{{ row.dueDate | date: 'yyyy.MM.dd.' }}</span>
+                </time>
+              </td>
+              <td role="cell" class="c-action">
+                <a class="row-link" [routerLink]="['/tasks', row.id]" [attr.aria-label]="'Megnyitás: ' + row.title"
+                  >Megnyitás</a
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="list-foot">
+        <span>{{ vm.rows.length }} / {{ vm.total }} feladat</span>
+        <button
+          type="button"
+          class="sort-btn"
+          title="Váltás a rendezés között: azonosító vagy határidő"
+          (click)="toggleSort()"
+        >
+          Rendezés: {{ vm.sortLabel }}
+        </button>
+      </footer>
+    </ng-container>
+
+    <ng-template #noRows>
+      <ng-container *ngIf="vm.view === 'loading'; then loadingTpl; else noData"></ng-container>
+    </ng-template>
+
+    <ng-template #noData>
+      <ng-container *ngIf="vm.view === 'error'; then errorTpl; else emptyTpl"></ng-container>
+    </ng-template>
+
+    <ng-template #loadingTpl>
+      <section class="card state-card" role="status" aria-labelledby="loading-title">
+        <span class="pill">Betöltés</span>
+        <h2 id="loading-title" class="state-title">Feladatok betöltése...</h2>
+        <div class="skeleton" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </section>
+    </ng-template>
+
+    <ng-template #errorTpl>
+      <section class="card state-card" role="alert" aria-labelledby="error-title">
+        <span class="pill pill-danger">API hiba</span>
+        <h2 id="error-title" class="state-title">Nem érhető el a kiszolgáló</h2>
+        <p class="state-text">
+          Az adatok betöltése nem sikerült.<br />
+          Próbáld meg újra néhány pillanat múlva.
+        </p>
+        <button type="button" class="btn btn-primary" (click)="retry()">Újrapróbálás</button>
+      </section>
+    </ng-template>
+
+    <ng-template #emptyTpl>
+      <section class="card state-card" role="status" aria-labelledby="empty-title">
+        <ng-container *ngIf="vm.hasFilters; else noTasksYet">
+          <span class="pill">Üres találati lista</span>
+          <h2 id="empty-title" class="state-title">Nincs találat</h2>
+          <p class="state-text">Módosítsd a keresést vagy a szűrőket.</p>
+          <button type="button" class="btn" (click)="clearFilters()">Szűrők törlése</button>
+        </ng-container>
+        <ng-template #noTasksYet>
+          <span class="pill">Üres lista</span>
+          <h2 id="empty-title" class="state-title">Még nincs feladat</h2>
+          <p class="state-text">Hozd létre az első feladatot.</p>
+          <a class="btn btn-primary" routerLink="/tasks/new">+ Új feladat</a>
+        </ng-template>
+      </section>
+    </ng-template>
+  </section>
+</ng-container>
