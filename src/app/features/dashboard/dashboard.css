@@ -1,1 +1,267 @@
-/* Áttekintés: oldalspecifikus stílusok. A közös elemek a src/styles.css-ben vannak. */
+:host {
+  display: block;
+}
+.dash:focus {
+  outline: none;
+}
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.page-head .btn {
+  flex: none;
+}
+
+/* ---------- Mutatók ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.stat {
+  padding: 20px;
+}
+.stat-label {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 400;
+}
+.stat-value {
+  margin: 4px 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.stat-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.all-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.all-link:hover,
+.row-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Táblázat (asztali) ---------- */
+.table-card {
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+.task-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.task-table th {
+  width: 16%;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: #f9fafc;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+}
+.task-table th:first-child {
+  width: 32%;
+}
+.task-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.task-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.title {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.meta {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.tint {
+  background: color-mix(in srgb, var(--pill, #667085) 12%, #fff);
+  color: var(--pill, #667085);
+}
+.d-full {
+  display: none;
+}
+.row-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* ---------- Állapotkártyák ---------- */
+.state-card {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  max-width: 560px;
+}
+.state-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.state-text {
+  margin: 0;
+  color: var(--muted);
+}
+.pill-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.skeleton {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+.skeleton span {
+  display: block;
+  height: 14px;
+  border-radius: 7px;
+  background: #e9edf4;
+}
+.skeleton span:nth-child(2) {
+  width: 82%;
+}
+.skeleton span:nth-child(3) {
+  width: 68%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton span {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ---------- Összevont menü (768-1023 px): 2 × 2 mutató ---------- */
+@media (max-width: 1023.98px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .task-table th,
+  .task-table td {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* ---------- Mobil (< 768 px): kártyás lista ---------- */
+@media (max-width: 767.98px) {
+  .page-title {
+    font-size: 24px;
+  }
+  .stats {
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    padding: 16px;
+  }
+  .table-card {
+    overflow: visible;
+    border: 0;
+    background: none;
+  }
+  .task-table,
+  .task-table tbody {
+    display: block;
+  }
+  .task-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .task-table tbody tr {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    grid-template-areas:
+      'title title'
+      'status assignee'
+      'due action';
+    align-items: center;
+    gap: 8px 0;
+    margin-bottom: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--card);
+  }
+  .task-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+  .c-title {
+    grid-area: title;
+  }
+  .c-status {
+    grid-area: status;
+  }
+  .c-assignee {
+    grid-area: assignee;
+  }
+  .task-table td.c-due,
+  .task-table td.c-action {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid var(--border);
+  }
+  .c-due {
+    grid-area: due;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .c-action {
+    grid-area: action;
+    justify-content: flex-end;
+  }
+  .d-short {
+    display: none;
+  }
+  .d-full {
+    display: inline;
+  }
+}

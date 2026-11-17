@@ -1,1 +1,107 @@
-<h1 class="page-title">Áttekintés</h1>
+<div #page class="dash" tabindex="-1">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Áttekintés</h1>
+      <p class="page-subtitle">A csapat munkája egy helyen.</p>
+    </div>
+    <a class="btn btn-primary" routerLink="/tasks/new">+ Új feladat</a>
+  </header>
+
+  <ng-container *ngIf="vm$ | async as vm">
+    <ng-container *ngIf="vm.status === 'ready'; else notReady">
+      <ng-container *ngIf="vm.summary as s">
+        <section class="stats" aria-label="Összesítő mutatók">
+          <article class="card stat">
+            <h2 class="stat-label">Összes feladat</h2>
+            <p class="stat-value">{{ s.total }}</p>
+            <p class="stat-note">{{ s.projectCount }} projekthez kapcsolódik</p>
+          </article>
+          <article class="card stat">
+            <h2 class="stat-label">Folyamatban</h2>
+            <p class="stat-value">{{ s.doing }}</p>
+            <p class="stat-note">Aktív munkák</p>
+          </article>
+          <article class="card stat">
+            <h2 class="stat-label">Elkészült</h2>
+            <p class="stat-value">{{ s.done }}</p>
+            <p class="stat-note">{{ s.donePercent }}% teljesítve</p>
+          </article>
+          <article class="card stat">
+            <h2 class="stat-label">Rögzített idő</h2>
+            <p class="stat-value">{{ s.totalTime }}</p>
+            <p class="stat-note">{{ s.totalMinutes }} perc összesen</p>
+          </article>
+        </section>
+
+        <div class="section-head">
+          <h2 class="section-title">Legközelebbi nyitott feladatok</h2>
+          <a class="all-link" routerLink="/tasks">Összes feladat</a>
+        </div>
+
+        <div class="table-card" *ngIf="s.openTasks.length > 0; else noOpen">
+          <table class="task-table">
+            <caption class="visually-hidden">Legközelebbi nyitott feladatok határidő szerint</caption>
+            <thead>
+              <tr>
+                <th scope="col">Feladat</th>
+                <th scope="col">Állapot</th>
+                <th scope="col">Felelős</th>
+                <th scope="col">Határidő</th>
+                <th scope="col">Művelet</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of s.openTasks; trackBy: trackById">
+                <td class="c-title">
+                  <strong class="title">{{ row.title }}</strong>
+                  <span class="meta">#{{ row.id }} · {{ row.projectName }}</span>
+                </td>
+                <td class="c-status">
+                  <span class="pill tint" [style.--pill]="row.statusColor">{{ row.statusName }}</span>
+                </td>
+                <td class="c-assignee">{{ row.assigneeName }}</td>
+                <td class="c-due">
+                  <time [attr.datetime]="row.dueDate">
+                    <span class="d-short">{{ row.dueDate | date: 'MM.dd.' }}</span>
+                    <span class="d-full">{{ row.dueDate | date: 'yyyy.MM.dd.' }}</span>
+                  </time>
+                </td>
+                <td class="c-action">
+                  <a class="row-link" [routerLink]="['/tasks', row.id]" [attr.aria-label]="'Megnyitás: ' + row.title">Megnyitás</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #noOpen>
+          <section class="card state-card" role="status">
+            <ng-container *ngIf="s.total === 0; else allDone">
+              <h2 class="state-title">Még nincs feladat</h2>
+              <p class="state-text">Hozd létre az első feladatot.</p>
+              <a class="btn btn-primary" routerLink="/tasks/new">+ Új feladat</a>
+            </ng-container>
+            <ng-template #allDone>
+              <h2 class="state-title">Nincs nyitott feladat</h2>
+              <p class="state-text">Minden feladat elkészült.</p>
+            </ng-template>
+          </section>
+        </ng-template>
+      </ng-container>
+    </ng-container>
+
+    <ng-template #notReady>
+      <section class="card state-card" role="status" aria-labelledby="dash-state" *ngIf="vm.status === 'loading'">
+        <span class="pill">Betöltés</span>
+        <h2 id="dash-state" class="state-title">Adatok betöltése...</h2>
+        <div class="skeleton" aria-hidden="true"><span></span><span></span><span></span></div>
+      </section>
+      <section class="card state-card" role="alert" aria-labelledby="dash-state" *ngIf="vm.status === 'error'">
+        <span class="pill pill-danger">API hiba</span>
+        <h2 id="dash-state" class="state-title">Nem érhető el a kiszolgáló</h2>
+        <p class="state-text">Az adatok betöltése nem sikerült.<br />Próbáld meg újra néhány pillanat múlva.</p>
+        <button type="button" class="btn btn-primary" (click)="retry()">Újrapróbálás</button>
+      </section>
+    </ng-template>
+  </ng-container>
+</div>
