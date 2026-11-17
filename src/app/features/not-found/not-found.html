@@ -1,0 +1,9 @@
+<section class="card not-found" aria-labelledby="nf-title">
+  <span class="pill">404</span>
+  <h1 id="nf-title" class="page-title">{{ message.title }}</h1>
+  <p class="page-subtitle">{{ message.text }}</p>
+  <div class="actions">
+    <button type="button" class="btn" (click)="back()">Vissza</button>
+    <a class="btn btn-primary" routerLink="/dashboard">Áttekintés</a>
+  </div>
+</section>
