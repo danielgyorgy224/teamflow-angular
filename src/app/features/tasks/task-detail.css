@@ -1,1 +1,319 @@
-/* Feladat: oldalspecifikus stílusok. A közös elemek a src/styles.css-ben vannak. */
+:host {
+  display: block;
+}
+.task-page:focus {
+  outline: none;
+}
+.muted {
+  color: var(--muted);
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.page-title {
+  overflow-wrap: anywhere;
+}
+.head-actions {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+.banner {
+  margin: 0 0 16px;
+  padding: 10px 16px;
+  border-radius: var(--radius-control);
+  font-weight: 700;
+}
+.banner-ok {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.banner-err,
+.pill-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* ---------- Elrendezés: főoszlop + 300 px-es oldalsáv ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: start;
+}
+.col-main,
+.col-side {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.panel {
+  padding: 20px;
+}
+.panel h2 {
+  font-size: 16px;
+  font-weight: 700;
+}
+.panel h2:focus {
+  outline: none;
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.panel-err {
+  margin: 8px 0;
+  color: var(--danger);
+  font-weight: 700;
+}
+.desc {
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+/* ---------- Címkék és állapotjelzők (színük az API-ból jön) ---------- */
+.labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tint {
+  background: color-mix(in srgb, var(--pill, #667085) 12%, #fff);
+  color: var(--pill, #667085);
+}
+
+/* ---------- Adatok ---------- */
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px 16px;
+  margin: 16px 0 0;
+}
+.facts dt {
+  color: var(--muted);
+}
+.facts dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* ---------- Listák ---------- */
+.items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.item,
+.comment,
+.time-row {
+  border-top: 1px solid var(--border);
+}
+.item:first-child,
+.comment:first-child,
+.time-row:first-child {
+  border-top: 0;
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.check {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin: 0;
+  font-weight: 400;
+  cursor: pointer;
+}
+.check input {
+  flex: none;
+  width: 20px;
+  min-height: 0;
+  height: 20px;
+  padding: 0;
+  accent-color: var(--primary);
+}
+.done {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.row-actions {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+}
+.link-btn {
+  min-height: 36px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.comment {
+  padding: 12px 0;
+}
+.comment-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+}
+.comment-head time {
+  font-size: 12px;
+}
+.comment-body {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.comment .row-actions {
+  margin-top: 4px;
+  margin-left: -8px;
+}
+.time-row {
+  display: grid;
+  padding: 12px 0;
+}
+
+/* ---------- Űrlapok ---------- */
+.inline-form,
+.add-form {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  gap: 8px;
+}
+.add-form {
+  margin-top: 12px;
+}
+.inline-field {
+  flex: 1;
+  min-width: 0;
+}
+.comment-form {
+  display: grid;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------- Állapotkártyák ---------- */
+.state-card {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  max-width: 560px;
+}
+.state-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.state-card p {
+  margin: 0;
+}
+.skeleton {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+.skeleton span {
+  display: block;
+  height: 14px;
+  border-radius: 7px;
+  background: #e9edf4;
+}
+.skeleton span:nth-child(2) {
+  width: 82%;
+}
+.skeleton span:nth-child(3) {
+  width: 68%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton span {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ---------- Összevont menü (768-1023 px): keskenyebb oldalsáv ---------- */
+@media (max-width: 1023.98px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+}
+
+/* ---------- Mobil (< 768 px): egy oszlop, az adatok a leírás után ---------- */
+@media (max-width: 767.98px) {
+  .page-title {
+    font-size: 24px;
+  }
+  .page-head {
+    flex-direction: column;
+  }
+  .head-actions .btn {
+    min-height: 44px;
+  }
+  .layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .col-main,
+  .col-side {
+    display: contents;
+  }
+  .panel-desc {
+    order: 1;
+  }
+  .panel-info {
+    order: 2;
+  }
+  .panel-check {
+    order: 3;
+  }
+  .panel-time {
+    order: 4;
+  }
+  .panel-comments {
+    order: 5;
+  }
+  .link-btn {
+    min-height: 44px;
+  }
+  .inline-form,
+  .add-form {
+    flex-wrap: wrap;
+  }
+}
