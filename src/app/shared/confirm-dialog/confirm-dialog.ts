@@ -34,7 +34,9 @@ export class ConfirmDialog implements AfterViewInit, OnDestroy {
   private readonly returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
   ngAfterViewInit(): void {
-    this.host.nativeElement.querySelector<HTMLElement>('[data-dialog-action]')?.focus();
+    this.host.nativeElement
+      .querySelector<HTMLElement>('[data-dialog-action], button:not([disabled])')
+      ?.focus();
   }
 
   ngOnDestroy(): void {

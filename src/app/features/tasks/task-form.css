@@ -1,1 +1,83 @@
-/* Feladatűrlap: oldalspecifikus stílusok. A közös elemek a src/styles.css-ben vannak. */
+.page-head,
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-head {
+  margin-bottom: 24px;
+}
+
+.task-form {
+  display: grid;
+  gap: 18px;
+  max-width: 900px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  min-width: 0;
+}
+
+.labels-fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.labels-fieldset legend {
+  padding: 0 6px;
+  font-weight: 700;
+}
+
+.label-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.label-option input {
+  width: 18px;
+  min-height: 18px;
+  margin: 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.form-actions {
+  justify-content: flex-start;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.state-title {
+  font-size: 18px;
+}
+
+.state-text {
+  color: var(--muted);
+}
+
+@media (max-width: 767.98px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-head {
+    align-items: flex-start;
+  }
+}
