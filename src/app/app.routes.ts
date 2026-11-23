@@ -38,6 +38,19 @@ export const routes: Routes = [
     loadComponent: () => import('./features/projects/project-list').then((m) => m.ProjectList),
   },
   {
+    path: 'projects/new',
+    title: 'Új projekt – TeamFlow',
+    canDeactivate: [unsavedChangesGuard],
+    loadComponent: () => import('./features/projects/project-form').then((m) => m.ProjectForm),
+  },
+  {
+    path: 'projects/:id/edit',
+    title: 'Projekt szerkesztése – TeamFlow',
+    canActivate: [validIdGuard],
+    canDeactivate: [unsavedChangesGuard],
+    loadComponent: () => import('./features/projects/project-form').then((m) => m.ProjectForm),
+  },
+  {
     path: 'projects/:id',
     title: 'Projekt – TeamFlow',
     canActivate: [validIdGuard],

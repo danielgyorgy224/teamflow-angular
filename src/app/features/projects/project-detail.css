@@ -1,1 +1,207 @@
-/* Projekt: oldalspecifikus stílusok. A közös elemek a src/styles.css-ben vannak. */
+.page-head,
+.panel-head,
+.row-actions,
+.inline-form,
+.task-row,
+.overview-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-head {
+  margin-bottom: 20px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.project-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.project-overview h2,
+.panel h2 {
+  font-size: 18px;
+}
+
+.project-overview p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.overview-meta {
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.overview-meta div {
+  min-width: 90px;
+}
+
+.overview-meta dt,
+.member-info small,
+.task-row small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.overview-meta dd {
+  margin: 4px 0 0;
+  font-weight: 700;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.panel {
+  min-width: 0;
+}
+
+.panel-head {
+  margin-bottom: 16px;
+}
+
+.panel-head p {
+  margin: 4px 0 0;
+}
+
+.member-list,
+.task-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.member-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, auto);
+  gap: 6px 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.member-info {
+  display: grid;
+  min-width: 0;
+}
+
+.member-info small {
+  overflow-wrap: anywhere;
+}
+
+.member-role {
+  grid-column: 1 / -1;
+  color: var(--muted);
+}
+
+.row-actions {
+  justify-content: flex-start;
+  grid-column: 1 / -1;
+}
+
+.link-btn {
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.danger-link {
+  color: var(--danger);
+}
+
+.inline-form {
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+}
+
+.inline-form input {
+  flex: 1 1 140px;
+}
+
+.add-member-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.add-member-form h3 {
+  font-size: 15px;
+}
+
+.task-row {
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.task-row > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.task-row a {
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.state-title {
+  font-size: 18px;
+}
+
+.state-text {
+  color: var(--muted);
+}
+
+.banner-ok {
+  color: var(--success);
+}
+
+.banner-err {
+  color: var(--danger);
+}
+
+@media (max-width: 900px) {
+  .detail-grid,
+  .project-overview {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .page-head {
+    align-items: flex-start;
+  }
+
+  .overview-meta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .member-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

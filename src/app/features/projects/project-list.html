@@ -1,1 +1,68 @@
-<h1 class="page-title">Projektek</h1>
+<ng-container *ngIf="vm$ | async as vm">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Projektek</h1>
+      <p class="page-subtitle">A csapat projektjei és teljesítése.</p>
+    </div>
+    <a class="btn btn-primary" routerLink="/projects/new">+ Új projekt</a>
+  </header>
+
+  <p class="banner banner-err" role="alert" *ngIf="pageError()">{{ pageError() }}</p>
+
+  <ng-container [ngSwitch]="vm.status">
+    <section class="card state-card" role="status" *ngSwitchCase="'loading'">
+      <h2 class="state-title">Projektek betöltése...</h2>
+    </section>
+    <section class="card state-card" role="alert" *ngSwitchCase="'error'">
+      <h2 class="state-title">A projektek nem érhetők el</h2>
+      <p class="state-text">Ellenőrizd a kiszolgálót, majd próbáld újra.</p>
+      <button type="button" class="btn btn-primary" (click)="retry()">Újrapróbálás</button>
+    </section>
+    <section class="project-grid" *ngSwitchCase="'ready'" aria-label="Projektlista">
+      <ng-container *ngIf="vm.projects.length > 0; else noProjects">
+        <article class="card project-card" *ngFor="let project of vm.projects; trackBy: trackById">
+          <div class="project-card-head">
+            <span class="pill" [class.pill-archived]="project.status === 'archived'">
+              {{ project.status === 'active' ? 'Aktív' : 'Archivált' }}
+            </span>
+            <span class="muted">{{ project.taskCount }} feladat</span>
+          </div>
+          <h2><a [routerLink]="['/projects', project.id]">{{ project.name }}</a></h2>
+          <p class="project-description">{{ project.description || 'Nincs leírás.' }}</p>
+          <dl class="project-meta">
+            <div><dt>Projektgazda</dt><dd>{{ project.ownerName }}</dd></div>
+            <div><dt>Határidő</dt><dd><time [attr.datetime]="project.dueDate">{{ project.dueDate | date: 'yyyy.MM.dd.' }}</time></dd></div>
+          </dl>
+          <div class="progress-label"><span>Teljesítés</span><strong>{{ project.completion }}%</strong></div>
+          <progress [value]="project.completion" max="100" [attr.aria-label]="project.name + ' teljesítése'">{{ project.completion }}%</progress>
+          <div class="card-actions">
+            <a class="btn" [routerLink]="['/projects', project.id]">Részletek</a>
+            <a class="btn" [routerLink]="['/projects', project.id, 'edit']">Szerkesztés</a>
+            <button type="button" class="btn btn-danger" (click)="requestDelete(project)">Törlés</button>
+          </div>
+        </article>
+      </ng-container>
+      <ng-template #noProjects>
+        <section class="card state-card">
+          <h2 class="state-title">Még nincs projekt</h2>
+          <p class="state-text">Hozd létre az első projektet.</p>
+          <a class="btn btn-primary" routerLink="/projects/new">+ Új projekt</a>
+        </section>
+      </ng-template>
+    </section>
+  </ng-container>
+
+  <app-confirm-dialog
+    *ngIf="pendingDelete() as pending"
+    [title]="pending.details ? 'A projekt nem törölhető' : 'Törlöd ezt a projektet?'"
+    [subject]="pending.project.name"
+    [message]="pending.details ? 'Előbb rendezd a kapcsolódó rekordokat:' : 'A projekt véglegesen törlődik.'"
+    [details]="pending.details ?? []"
+    [confirmLabel]="pending.details ? null : 'Törlés'"
+    [cancelLabel]="pending.details ? 'Bezárás' : 'Mégse'"
+    [busy]="deleteBusy()"
+    [error]="deleteError()"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()"
+  />
+</ng-container>
