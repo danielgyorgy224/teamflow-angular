@@ -61,6 +61,17 @@ export const routes: Routes = [
     title: 'Csapat – TeamFlow',
     loadComponent: () => import('./features/team/team').then((m) => m.Team),
   },
+  {
+    path: 'team/new',
+    title: 'Új csapattag – TeamFlow',
+    loadComponent: () => import('./features/team/user-form').then((m) => m.UserForm),
+  },
+  {
+    path: 'team/:id/edit',
+    title: 'Csapattag szerkesztése – TeamFlow',
+    canActivate: [validIdGuard],
+    loadComponent: () => import('./features/team/user-form').then((m) => m.UserForm),
+  },
   { path: 'admin', pathMatch: 'full', redirectTo: 'admin/labels' },
   {
     path: 'admin/:resource',

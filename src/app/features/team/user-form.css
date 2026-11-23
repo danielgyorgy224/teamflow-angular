@@ -1,0 +1,43 @@
+.page-head,
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-head {
+  margin-bottom: 24px;
+}
+
+.form-card {
+  display: grid;
+  gap: 18px;
+  max-width: 640px;
+}
+
+.active-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.active-field input {
+  width: 20px;
+  min-height: 20px;
+  margin: 0;
+}
+
+.form-actions {
+  justify-content: flex-start;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.state-title {
+  font-size: 18px;
+}
+
+.state-text {
+  color: var(--muted);
+}

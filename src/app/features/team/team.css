@@ -1,1 +1,103 @@
-/* Csapat: oldalspecifikus stílusok. A közös elemek a src/styles.css-ben vannak. */
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  background: #f9fafb;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+td {
+  font-size: 14px;
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+.link-btn {
+  border: 0;
+  padding: 6px;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.danger-link {
+  color: var(--danger);
+}
+
+.link-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.active-pill {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.empty-state,
+.state-card {
+  padding: 24px;
+}
+
+.empty-state {
+  text-align: center;
+}
+
+.state-title {
+  font-size: 18px;
+}
+
+.state-text,
+.banner-err {
+  color: var(--muted);
+}
+
+.banner-err {
+  color: var(--danger);
+}
+
+@media (max-width: 767.98px) {
+  .page-head {
+    align-items: flex-start;
+  }
+
+  .table-card {
+    padding: 0;
+  }
+
+  th,
+  td {
+    padding: 12px;
+  }
+}

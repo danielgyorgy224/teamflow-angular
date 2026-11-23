@@ -1,1 +1,131 @@
-/* Törzsadatok: oldalspecifikus stílusok. A közös elemek a src/styles.css-ben vannak. */
+.page-head,
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-head {
+  margin-bottom: 20px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs a {
+  min-height: 44px;
+  padding: 10px 16px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.tabs a.active {
+  border-bottom: 2px solid var(--primary);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.catalog-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+th {
+  background: #f9fafb;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+.link-btn {
+  border: 0;
+  padding: 6px;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.danger-link {
+  color: var(--danger);
+}
+
+.color-chip {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.form-card {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.form-card h2 {
+  font-size: 18px;
+}
+
+.form-card form {
+  display: grid;
+  gap: 16px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.form-actions {
+  justify-content: flex-start;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.empty-state,
+.state-card {
+  padding: 24px;
+}
+
+.state-title {
+  font-size: 18px;
+}
+
+.state-text {
+  color: var(--muted);
+}
+
+@media (max-width: 767.98px) {
+  .page-head {
+    align-items: flex-start;
+  }
+}

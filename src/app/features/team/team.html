@@ -1,1 +1,57 @@
-<h1 class="page-title">Csapat</h1>
+<ng-container *ngIf="vm$ | async as vm">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Csapat</h1>
+      <p class="page-subtitle">A projektben részt vevő felhasználók.</p>
+    </div>
+    <a class="btn btn-primary" routerLink="/team/new">+ Új csapattag</a>
+  </header>
+  <p class="banner banner-err" role="alert" *ngIf="pageError()">{{ pageError() }}</p>
+
+  <ng-container [ngSwitch]="vm.status">
+    <section class="card state-card" role="status" *ngSwitchCase="'loading'"><h2 class="state-title">Csapattagok betöltése...</h2></section>
+    <section class="card state-card" role="alert" *ngSwitchCase="'error'">
+      <h2 class="state-title">A csapat nem érhető el</h2>
+      <p class="state-text">Ellenőrizd a kiszolgálót, majd próbáld újra.</p>
+      <button type="button" class="btn btn-primary" (click)="retry()">Újrapróbálás</button>
+    </section>
+    <section class="card table-card" *ngSwitchCase="'ready'">
+      <ng-container *ngIf="vm.users.length > 0; else noUsers">
+        <div class="table-wrap">
+          <table>
+            <caption class="visually-hidden">Csapattagok és felhasználói adatok</caption>
+            <thead><tr><th scope="col">Név</th><th scope="col">E-mail</th><th scope="col">Szerepkör</th><th scope="col">Állapot</th><th scope="col">Kapcsolatok</th><th scope="col">Művelet</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let user of vm.users; trackBy: trackById">
+                <td><strong>{{ user.name }}</strong></td>
+                <td><a [href]="'mailto:' + user.email">{{ user.email }}</a></td>
+                <td>{{ user.role }}</td>
+                <td><span class="pill" [class.active-pill]="user.active">{{ user.active ? 'Aktív' : 'Inaktív' }}</span></td>
+                <td>{{ user.referenceCount }}</td>
+                <td class="actions">
+                  <a class="link-btn" [routerLink]="['/team', user.id, 'edit']">Szerkesztés</a>
+                  <button type="button" class="link-btn danger-link" (click)="requestDelete(user)">Törlés</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+      <ng-template #noUsers><div class="empty-state"><h2 class="state-title">Még nincs csapattag</h2><p class="state-text">Hozz létre egy felhasználót.</p><a class="btn btn-primary" routerLink="/team/new">+ Új csapattag</a></div></ng-template>
+    </section>
+  </ng-container>
+
+  <app-confirm-dialog
+    *ngIf="pendingDelete() as pending"
+    [title]="pending.details ? 'A felhasználó nem törölhető' : 'Törlöd ezt a felhasználót?'"
+    [subject]="pending.user.name"
+    [message]="pending.details ? 'Előbb rendezd a hivatkozott adatokat:' : 'A felhasználó véglegesen törlődik.'"
+    [details]="pending.details ?? []"
+    [confirmLabel]="pending.details ? null : 'Törlés'"
+    [cancelLabel]="pending.details ? 'Bezárás' : 'Mégse'"
+    [busy]="deleteBusy()"
+    [error]="deleteError()"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()"
+  />
+</ng-container>
