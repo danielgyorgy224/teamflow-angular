@@ -1,0 +1,30 @@
+<div class="dialog-backdrop" (click)="onBackdropClick($event)">
+  <section
+    class="dialog"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="dialog-title"
+    aria-describedby="dialog-message"
+  >
+    <h2 id="dialog-title">{{ title }}</h2>
+    <p id="dialog-message">{{ message }}</p>
+    <p class="subject" *ngIf="subject">{{ subject }}</p>
+    <ul *ngIf="details.length > 0">
+      <li *ngFor="let detail of details">{{ detail }}</li>
+    </ul>
+    <p class="error" role="alert" *ngIf="error">{{ error }}</p>
+    <div class="actions">
+      <button type="button" class="btn" [disabled]="busy" (click)="cancel()">{{ cancelLabel }}</button>
+      <button
+        *ngIf="confirmLabel as label"
+        type="button"
+        class="btn btn-danger-solid"
+        data-dialog-action
+        [disabled]="busy"
+        (click)="confirm()"
+      >
+        {{ busy ? 'Folyamatban...' : label }}
+      </button>
+    </div>
+  </section>
+</div>
