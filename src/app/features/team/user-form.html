@@ -1,0 +1,40 @@
+<ng-container *ngIf="vm$ | async as vm">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">{{ userId ? 'Csapattag szerkesztése' : 'Új csapattag' }}</h1>
+      <p class="page-subtitle">Felhasználói adatok.</p>
+    </div>
+    <a class="btn" routerLink="/team">Vissza a csapathoz</a>
+  </header>
+
+  <section class="card state-card" role="status" *ngIf="vm.status === 'loading'"><h2 class="state-title">Adatok betöltése...</h2></section>
+  <section class="card state-card" role="alert" *ngIf="vm.status === 'error'">
+    <h2 class="state-title">A felhasználói adatok nem érhetők el</h2>
+    <p class="state-text">Ellenőrizd a kiszolgálót, majd próbáld újra.</p>
+    <a class="btn" routerLink="/team">Vissza a csapathoz</a>
+  </section>
+
+  <form *ngIf="vm.status === 'ready'" class="card form-card" [formGroup]="form" (ngSubmit)="save(vm.users)" novalidate>
+    <div class="field">
+      <label for="user-name">Név</label>
+      <input id="user-name" formControlName="name" maxlength="100" [attr.aria-invalid]="form.controls.name.invalid && (form.controls.name.touched || submitted())" />
+      <p class="field-error" *ngIf="form.controls.name.invalid && (form.controls.name.touched || submitted())">A név kötelező, legfeljebb 100 karakter.</p>
+    </div>
+    <div class="field">
+      <label for="user-email">E-mail-cím</label>
+      <input id="user-email" type="email" formControlName="email" maxlength="254" autocomplete="email" [attr.aria-invalid]="form.controls.email.invalid && (form.controls.email.touched || submitted())" />
+      <p class="field-error" *ngIf="form.controls.email.invalid && (form.controls.email.touched || submitted())">Adj meg érvényes e-mail-címet.</p>
+    </div>
+    <div class="field">
+      <label for="user-role">Szerepkör</label>
+      <input id="user-role" formControlName="role" maxlength="80" />
+      <p class="field-error" *ngIf="form.controls.role.invalid && (form.controls.role.touched || submitted())">A szerepkör kötelező, legfeljebb 80 karakter.</p>
+    </div>
+    <label class="active-field"><input type="checkbox" formControlName="active" /> Aktív csapattag</label>
+    <p class="field-error" role="alert" *ngIf="saveError()">{{ saveError() }}</p>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="saving() || form.invalid">{{ saving() ? 'Mentés...' : 'Mentés' }}</button>
+      <a class="btn" routerLink="/team">Mégse</a>
+    </div>
+  </form>
+</ng-container>

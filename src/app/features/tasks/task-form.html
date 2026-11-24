@@ -1,1 +1,83 @@
-<h1 class="page-title">Feladat űrlap</h1>
+<ng-container *ngIf="vm$ | async as vm">
+  <header class="page-head">
+    <div><h1 class="page-title">{{ taskId ? 'Feladat szerkesztése' : 'Új feladat' }}</h1><p class="page-subtitle">A feladat alapadatai.</p></div>
+    <a class="btn" routerLink="/tasks">Vissza a feladatokhoz</a>
+  </header>
+
+  <section class="card state-card" role="status" *ngIf="vm.status === 'loading'"><h2 class="state-title">Űrlapadatok betöltése...</h2></section>
+  <section class="card state-card" role="alert" *ngIf="vm.status === 'error'">
+    <h2 class="state-title">Az űrlap adatai nem tölthetők be</h2>
+    <p class="state-text">Ellenőrizd a kiszolgálót, majd próbáld újra.</p>
+    <a class="btn" routerLink="/tasks">Vissza a feladatokhoz</a>
+  </section>
+
+  <form *ngIf="vm.status === 'ready'" class="card task-form" [formGroup]="form" (ngSubmit)="save(vm.data)" novalidate>
+    <div class="field">
+      <label for="task-title">Feladat neve</label>
+      <input id="task-title" formControlName="title" maxlength="120" [attr.aria-invalid]="form.controls.title.invalid && (form.controls.title.touched || submitted())" />
+      <p class="field-error" *ngIf="form.controls.title.invalid && (form.controls.title.touched || submitted())">A név kötelező, legfeljebb 120 karakter.</p>
+    </div>
+    <div class="field">
+      <label for="task-description">Leírás</label>
+      <textarea id="task-description" formControlName="description" rows="4" maxlength="2000"></textarea>
+      <p class="field-error" *ngIf="form.controls.description.invalid && (form.controls.description.touched || submitted())">A leírás legfeljebb 2000 karakter lehet.</p>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="task-project">Projekt</label>
+        <select id="task-project" formControlName="projectId">
+          <option [ngValue]="null">Válassz projektet</option>
+          <option *ngFor="let project of vm.data.projects; trackBy: trackById" [ngValue]="project.id">{{ project.name }}</option>
+        </select>
+        <p class="field-error" *ngIf="form.controls.projectId.invalid && (form.controls.projectId.touched || submitted())">Válassz létező projektet.</p>
+      </div>
+      <div class="field">
+        <label for="task-assignee">Felelős</label>
+        <select id="task-assignee" formControlName="assigneeId">
+          <option [ngValue]="null">Válassz csapattagot</option>
+          <option *ngFor="let user of vm.data.users; trackBy: trackById" [ngValue]="user.id">{{ user.name }}{{ user.active ? '' : ' (inaktív)' }}</option>
+        </select>
+        <p class="field-error" *ngIf="form.controls.assigneeId.invalid && (form.controls.assigneeId.touched || submitted())">Válassz létező csapattagot.</p>
+      </div>
+      <div class="field">
+        <label for="task-status">Állapot</label>
+        <select id="task-status" formControlName="statusId">
+          <option [ngValue]="null">Válassz állapotot</option>
+          <option *ngFor="let status of vm.data.statuses; trackBy: trackById" [ngValue]="status.id">{{ status.name }}</option>
+        </select>
+        <p class="field-error" *ngIf="form.controls.statusId.invalid && (form.controls.statusId.touched || submitted())">Válassz létező állapotot.</p>
+      </div>
+      <div class="field">
+        <label for="task-priority">Prioritás</label>
+        <select id="task-priority" formControlName="priorityId">
+          <option [ngValue]="null">Válassz prioritást</option>
+          <option *ngFor="let priority of vm.data.priorities; trackBy: trackById" [ngValue]="priority.id">{{ priority.name }}</option>
+        </select>
+        <p class="field-error" *ngIf="form.controls.priorityId.invalid && (form.controls.priorityId.touched || submitted())">Válassz létező prioritást.</p>
+      </div>
+      <div class="field">
+        <label for="task-due">Határidő</label>
+        <input id="task-due" type="date" formControlName="dueDate" />
+        <p class="field-error" *ngIf="form.controls.dueDate.invalid && (form.controls.dueDate.touched || submitted())">Add meg a határidőt.</p>
+      </div>
+      <div class="field">
+        <label for="task-estimate">Becsült idő (óra)</label>
+        <input id="task-estimate" type="number" min="0.1" step="0.1" formControlName="estimateHours" />
+        <p class="field-error" *ngIf="form.controls.estimateHours.invalid && (form.controls.estimateHours.touched || submitted())">Adj meg pozitív becsült óraszámot.</p>
+      </div>
+    </div>
+    <fieldset class="labels-fieldset">
+      <legend>Címkék</legend>
+      <p class="muted" *ngIf="vm.data.labels.length === 0">Nincs elérhető címke.</p>
+      <label class="label-option" *ngFor="let label of vm.data.labels; trackBy: trackById">
+        <input type="checkbox" [checked]="form.controls.labelIds.value.includes(label.id)" (change)="toggleLabel(label.id, $event)" />
+        <span class="pill tint" [style.--pill]="label.color">{{ label.name }}</span>
+      </label>
+    </fieldset>
+    <p class="field-error" role="alert" *ngIf="saveError()">{{ saveError() }}</p>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="saving() || form.invalid">{{ saving() ? 'Mentés...' : 'Mentés' }}</button>
+      <a class="btn" routerLink="/tasks">Mégse</a>
+    </div>
+  </form>
+</ng-container>

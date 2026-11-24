@@ -197,7 +197,25 @@
 }
 .time-row {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
   padding: 12px 0;
+}
+.time-entry-info {
+  display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.time-form {
+  display: grid;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+.time-form .field-error {
+  margin: 4px 0 0;
+  color: var(--danger);
+  font-size: 12px;
 }
 
 /* ---------- Űrlapok ---------- */

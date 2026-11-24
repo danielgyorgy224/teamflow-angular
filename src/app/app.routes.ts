@@ -38,6 +38,19 @@ export const routes: Routes = [
     loadComponent: () => import('./features/projects/project-list').then((m) => m.ProjectList),
   },
   {
+    path: 'projects/new',
+    title: 'Új projekt – TeamFlow',
+    canDeactivate: [unsavedChangesGuard],
+    loadComponent: () => import('./features/projects/project-form').then((m) => m.ProjectForm),
+  },
+  {
+    path: 'projects/:id/edit',
+    title: 'Projekt szerkesztése – TeamFlow',
+    canActivate: [validIdGuard],
+    canDeactivate: [unsavedChangesGuard],
+    loadComponent: () => import('./features/projects/project-form').then((m) => m.ProjectForm),
+  },
+  {
     path: 'projects/:id',
     title: 'Projekt – TeamFlow',
     canActivate: [validIdGuard],
@@ -47,6 +60,17 @@ export const routes: Routes = [
     path: 'team',
     title: 'Csapat – TeamFlow',
     loadComponent: () => import('./features/team/team').then((m) => m.Team),
+  },
+  {
+    path: 'team/new',
+    title: 'Új csapattag – TeamFlow',
+    loadComponent: () => import('./features/team/user-form').then((m) => m.UserForm),
+  },
+  {
+    path: 'team/:id/edit',
+    title: 'Csapattag szerkesztése – TeamFlow',
+    canActivate: [validIdGuard],
+    loadComponent: () => import('./features/team/user-form').then((m) => m.UserForm),
   },
   { path: 'admin', pathMatch: 'full', redirectTo: 'admin/labels' },
   {

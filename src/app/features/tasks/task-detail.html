@@ -265,17 +265,73 @@
             </dl>
           </section>
 
-          <!-- TODO (B): az időnapló CRUD-ja ennek a panelnek a fejlécébe és sorai mellé kerül. -->
           <section class="card panel panel-time" aria-labelledby="time-title">
-            <h2 id="time-title">Időnapló</h2>
+            <div class="panel-head">
+              <h2 id="time-title" tabindex="-1">Időnapló</h2>
+              <button
+                id="time-open"
+                type="button"
+                class="link-btn"
+                aria-controls="time-form"
+                [attr.aria-expanded]="timeFormOpen()"
+                (click)="timeFormOpen() ? closeTimeForm() : openTimeForm(p.users)"
+              >
+                {{ timeFormOpen() ? 'Bezárás' : '+ Idő rögzítése' }}
+              </button>
+            </div>
+            <p class="panel-err" role="alert" *ngIf="timeError()">{{ timeError() }}</p>
+            <form
+              id="time-form"
+              class="time-form"
+              *ngIf="timeFormOpen()"
+              [formGroup]="timeForm"
+              (ngSubmit)="saveTime(p.task.id, p.users)"
+              novalidate
+            >
+              <div class="field">
+                <label for="time-user">Csapattag</label>
+                <select id="time-user" formControlName="userId">
+                  <option [ngValue]="null">Válassz csapattagot</option>
+                  <option *ngFor="let user of p.users; trackBy: trackById" [ngValue]="user.id">{{ user.name }}</option>
+                </select>
+                <p class="field-error" *ngIf="timeForm.controls.userId.invalid && (timeForm.controls.userId.touched || timeSubmitted())">Válassz létező csapattagot.</p>
+              </div>
+              <div class="field">
+                <label for="time-minutes">Időtartam (perc)</label>
+                <input id="time-minutes" type="number" min="1" step="1" formControlName="minutes" />
+                <p class="field-error" *ngIf="timeForm.controls.minutes.invalid && (timeForm.controls.minutes.touched || timeSubmitted())">Adj meg pozitív egész percszámot.</p>
+              </div>
+              <div class="field">
+                <label for="time-date">Dátum</label>
+                <input id="time-date" type="date" formControlName="date" />
+                <p class="field-error" *ngIf="timeForm.controls.date.invalid && (timeForm.controls.date.touched || timeSubmitted())">Add meg a dátumot.</p>
+              </div>
+              <div class="field">
+                <label for="time-note">Megjegyzés (nem kötelező)</label>
+                <input id="time-note" type="text" formControlName="note" maxlength="200" />
+                <p class="field-error" *ngIf="timeForm.controls.note.invalid && (timeForm.controls.note.touched || timeSubmitted())">Legfeljebb 200 karakter adható meg.</p>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" [disabled]="timeSaving() || timeForm.invalid">
+                  {{ timeSaving() ? 'Mentés...' : editingTimeId() ? 'Módosítás' : 'Rögzítés' }}
+                </button>
+                <button type="button" class="btn" [disabled]="timeSaving()" (click)="closeTimeForm()">Mégse</button>
+              </div>
+            </form>
             <p class="panel-err" role="alert" *ngIf="p.time.status === 'error'">
               Az időnapló nem tölthető be.
               <button type="button" class="link-btn" (click)="retry()">Újrapróbálás</button>
             </p>
             <ul class="items" *ngIf="p.time.items.length > 0; else noTime">
               <li class="time-row" *ngFor="let entry of p.time.items; trackBy: trackById">
-                <span>{{ entry.minutes }} perc · {{ entry.who }}</span>
-                <small class="muted">{{ entry.date | date: 'yyyy.MM.dd.' }}<ng-container *ngIf="entry.note"> · {{ entry.note }}</ng-container></small>
+                <div class="time-entry-info">
+                  <span>{{ entry.minutes }} perc · {{ entry.who }}</span>
+                  <small class="muted">{{ entry.date | date: 'yyyy.MM.dd.' }}<ng-container *ngIf="entry.note"> · {{ entry.note }}</ng-container></small>
+                </div>
+                <span class="row-actions">
+                  <button type="button" class="link-btn" [attr.aria-label]="'Időnapló-bejegyzés szerkesztése: ' + entry.minutes + ' perc'" (click)="startTimeEdit(entry)">Szerk.</button>
+                  <button type="button" class="link-btn" [attr.aria-label]="'Időnapló-bejegyzés törlése: ' + entry.minutes + ' perc'" (click)="requestTimeDelete(entry)">Törlés</button>
+                </span>
               </li>
             </ul>
             <ng-template #noTime>
@@ -319,7 +375,9 @@
           ? 'Törlöd ezt a feladatot?'
           : pending.kind === 'comment'
             ? 'Törlöd ezt a hozzászólást?'
-            : 'Törlöd ezt a pontot?'
+            : pending.kind === 'checklist'
+              ? 'Törlöd ezt a pontot?'
+              : 'Törlöd ezt az időnapló-bejegyzést?'
     "
     [subject]="pending.subject"
     [message]="

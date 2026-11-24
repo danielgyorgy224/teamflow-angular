@@ -67,6 +67,7 @@ interface CommentRow {
 
 interface TimeRow {
   id: number;
+  userId: number;
   who: string;
   minutes: number;
   date: string;
@@ -97,7 +98,8 @@ type PendingDelete =
   | { kind: 'task'; id: number; subject: string }
   | { kind: 'blocked'; id: number; subject: string; details: string[] }
   | { kind: 'comment'; id: number; subject: string }
-  | { kind: 'checklist'; id: number; subject: string };
+  | { kind: 'checklist'; id: number; subject: string }
+  | { kind: 'time'; id: number; subject: string };
 
 @Component({
   selector: 'app-task-detail',
@@ -135,6 +137,7 @@ export class TaskDetail {
   /** Sikeres írás után csak az érintett lista töltődik újra (Subject + tap). */
   private readonly commentsChanged$ = new Subject<void>();
   private readonly checklistChanged$ = new Subject<void>();
+  private readonly timeChanged$ = new Subject<void>();
 
   /** Latest users for validating the selected comment author on submit. */
   private users: User[] = [];
@@ -181,9 +184,10 @@ export class TaskDetail {
     merge(this.reload$, this.checklistChanged$),
     (id) => this.checklistService.listByTask(id),
   );
-  /** TODO (B): az időnapló CRUD-ja (új, szerkesztés, törlés) ide, a panel mellé kerül. */
-  private readonly time$ = loadSection(this.id$, this.reload$, (id) =>
-    this.timeEntryService.listByTask(id),
+  private readonly time$ = loadSection(
+    this.id$,
+    merge(this.reload$, this.timeChanged$),
+    (id) => this.timeEntryService.listByTask(id),
   );
 
   readonly vm$: Observable<DetailVm> = combineLatest([
@@ -195,7 +199,7 @@ export class TaskDetail {
 
   // ---------- Állapot a sablonnak (signal: zoneless változásészlelés) ----------
 
-  readonly notice = signal('');
+  readonly notice = signal(typeof history === 'undefined' ? '' : String(history.state?.notice ?? ''));
   readonly pageError = signal('');
   readonly checkingDelete = signal(false);
   readonly pendingDelete = signal<PendingDelete | null>(null);
@@ -217,6 +221,12 @@ export class TaskDetail {
   readonly checklistEditSubmitted = signal(false);
   readonly checklistEditSaving = signal(false);
   private readonly busyItems = signal<ReadonlySet<number>>(new Set());
+
+  readonly timeFormOpen = signal(false);
+  readonly timeSubmitted = signal(false);
+  readonly timeSaving = signal(false);
+  readonly timeError = signal('');
+  readonly editingTimeId = signal<number | null>(null);
 
   // ---------- Űrlapok ----------
 
@@ -241,6 +251,16 @@ export class TaskDetail {
   readonly checklistEditCtrl = new FormControl('', {
     nonNullable: true,
     validators: [trimmedLength(1, CHECKLIST_MAX)],
+  });
+  readonly timeForm = new FormGroup({
+    userId: new FormControl<number | null>(CURRENT_USER_ID, Validators.required),
+    minutes: new FormControl<number | null>(null, [
+      Validators.required,
+      Validators.min(1),
+      Validators.pattern(/^\d+$/),
+    ]),
+    date: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    note: new FormControl('', { nonNullable: true, validators: [trimmedLength(0, 200)] }),
   });
 
   // ---------- Sablonsegédek ----------
@@ -309,6 +329,11 @@ export class TaskDetail {
     this.pendingDelete.set({ kind: 'checklist', id: item.id, subject: item.text });
   }
 
+  requestTimeDelete(entry: TimeRow): void {
+    this.deleteError.set(null);
+    this.pendingDelete.set({ kind: 'time', id: entry.id, subject: `${entry.minutes} perc · ${entry.who}` });
+  }
+
   cancelDelete(): void {
     if (this.deleteBusy()) return;
     this.pendingDelete.set(null);
@@ -323,7 +348,9 @@ export class TaskDetail {
         ? this.taskService.remove(pending.id)
         : pending.kind === 'comment'
           ? this.commentService.remove(pending.id).pipe(tap(() => this.commentsChanged$.next()))
-          : this.checklistService.remove(pending.id).pipe(tap(() => this.checklistChanged$.next()));
+          : pending.kind === 'checklist'
+            ? this.checklistService.remove(pending.id).pipe(tap(() => this.checklistChanged$.next()))
+            : this.timeEntryService.remove(pending.id).pipe(tap(() => this.timeChanged$.next()));
 
     this.deleteBusy.set(true);
     this.deleteError.set(null);
@@ -345,11 +372,23 @@ export class TaskDetail {
           if (this.editingChecklistId() === pending.id && pending.kind === 'checklist') {
             this.editingChecklistId.set(null);
           }
-          this.notice.set(pending.kind === 'comment' ? 'A hozzászólás törölve.' : 'A pont törölve.');
-          // A törölt sor megnyitó gombja megszűnt, ezért a panel címére kerül a fókusz.
-          setTimeout(() =>
-            this.focusById(pending.kind === 'comment' ? 'comments-title' : 'checklist-title'),
+          this.notice.set(
+            pending.kind === 'comment'
+              ? 'A hozzászólás törölve.'
+              : pending.kind === 'checklist'
+                ? 'A pont törölve.'
+                : 'Az időnapló-bejegyzés törölve.',
           );
+          // A törölt sor megnyitó gombja megszűnt, ezért a panel címére kerül a fókusz.
+          setTimeout(() => {
+            const target =
+              pending.kind === 'comment'
+                ? 'comments-title'
+                : pending.kind === 'checklist'
+                  ? 'checklist-title'
+                  : 'time-title';
+            this.focusById(target);
+          });
         },
         error: () =>
           this.deleteError.set('A törlés nem sikerült, a rekord megmaradt. Próbáld újra.'),
@@ -530,6 +569,96 @@ export class TaskDetail {
       });
   }
 
+  openTimeForm(users: User[]): void {
+    if (this.timeSaving()) return;
+    const userId = users.some((user) => user.id === this.timeForm.controls.userId.value)
+      ? this.timeForm.controls.userId.value
+      : (users[0]?.id ?? null);
+    this.timeForm.reset({ userId, minutes: null, date: new Date().toISOString().slice(0, 10), note: '' });
+    this.timeSubmitted.set(false);
+    this.timeError.set('');
+    this.editingTimeId.set(null);
+    this.timeFormOpen.set(true);
+    setTimeout(() => this.focusById('time-user'));
+  }
+
+  startTimeEdit(entry: TimeRow): void {
+    this.timeSubmitted.set(false);
+    this.timeError.set('');
+    this.editingTimeId.set(entry.id);
+    this.timeFormOpen.set(true);
+    this.timeForm.reset({
+      userId: entry.userId,
+      minutes: entry.minutes,
+      date: entry.date,
+      note: entry.note,
+    });
+    setTimeout(() => this.focusById('time-user'));
+  }
+
+  closeTimeForm(): void {
+    if (this.timeSaving()) return;
+    this.timeFormOpen.set(false);
+    this.editingTimeId.set(null);
+    this.timeSubmitted.set(false);
+    this.timeError.set('');
+    setTimeout(() => this.focusById('time-open'));
+  }
+
+  saveTime(taskId: number, users: User[]): void {
+    if (this.timeSaving()) return;
+    this.timeSubmitted.set(true);
+    this.timeForm.markAllAsTouched();
+    const value = this.timeForm.getRawValue();
+    if (
+      this.timeForm.invalid ||
+      value.userId === null ||
+      value.minutes === null ||
+      !users.some((user) => user.id === value.userId)
+    ) {
+      if (value.userId !== null && !users.some((user) => user.id === value.userId)) {
+        this.timeForm.controls.userId.setErrors({ unknown: true });
+      }
+      return;
+    }
+
+    this.timeSaving.set(true);
+    this.timeError.set('');
+    const payload = {
+      taskId,
+      userId: value.userId,
+      minutes: value.minutes,
+      date: value.date,
+      note: value.note.trim(),
+    };
+    const editingId = this.editingTimeId();
+    const request = editingId
+      ? this.timeEntryService.update(editingId, payload)
+      : this.timeEntryService.create(payload);
+    request
+      .pipe(
+        tap(() => this.timeChanged$.next()),
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.timeSaving.set(false)),
+      )
+      .subscribe({
+        next: () => {
+          this.timeFormOpen.set(false);
+          this.editingTimeId.set(null);
+          this.timeForm.reset({ userId: value.userId, minutes: null, date: '', note: '' });
+          this.timeSubmitted.set(false);
+          this.notice.set(editingId ? 'Az időnapló-bejegyzés módosítva.' : 'Az időnapló-bejegyzés rögzítve.');
+          setTimeout(() => this.focusById('time-open'));
+        },
+        error: (error: unknown) =>
+          this.timeError.set(
+            error instanceof HttpErrorResponse && error.status === 404
+              ? 'A feladatot vagy a felhasználót már nem találom. Frissítsd az oldalt.'
+              : 'A mentés nem sikerült. Az adatok megmaradtak, próbáld újra.',
+          ),
+      });
+  }
+
   // ---------- Belső segédek ----------
 
   private onUsers(users: User[]): void {
@@ -572,6 +701,7 @@ export class TaskDetail {
       status: time.status,
       items: time.items.map((t) => ({
         id: t.id,
+        userId: t.userId,
         who: userName(users, t.userId),
         minutes: t.minutes,
         date: t.date,

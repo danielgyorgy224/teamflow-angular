@@ -1,1 +1,103 @@
-<h1 class="page-title">Törzsadatok</h1>
+<ng-container *ngIf="vm$ | async as vm">
+  <header class="page-head">
+    <div><h1 class="page-title">Törzsadatok</h1><p class="page-subtitle">A feladatokhoz használható értékek.</p></div>
+    <button class="btn btn-primary" type="button" (click)="openCreate(vm.resource)">+ Új {{ vm.resource === 'labels' ? 'címke' : vm.resource === 'statuses' ? 'állapot' : 'prioritás' }}</button>
+  </header>
+
+  <nav class="tabs" aria-label="Törzsadattípus">
+    <a *ngFor="let resource of resources" [routerLink]="['/admin', resource]" routerLinkActive="active" [attr.aria-current]="vm.resource === resource ? 'page' : null">{{ title(resource) }}</a>
+  </nav>
+  <p class="field-error" role="alert" *ngIf="pageError()">{{ pageError() }}</p>
+
+  <section class="card state-card" role="status" *ngIf="vm.status === 'loading'"><h2 class="state-title">{{ title(vm.resource) }} betöltése...</h2></section>
+  <section class="card state-card" role="alert" *ngIf="vm.status === 'error'">
+    <h2 class="state-title">A(z) {{ title(vm.resource).toLowerCase() }} nem tölthetők be</h2>
+    <p class="state-text">Ellenőrizd a kiszolgálót, majd próbáld újra.</p>
+    <button type="button" class="btn btn-primary" (click)="retry()">Újrapróbálás</button>
+  </section>
+
+  <section class="card catalog-card" *ngIf="vm.status === 'ready'">
+    <ng-container *ngIf="vm.rows.length > 0; else noRows">
+      <div class="table-wrap">
+        <table>
+          <caption class="visually-hidden">{{ title(vm.resource) }} listája</caption>
+          <thead>
+            <tr>
+              <th scope="col">Név</th>
+              <th scope="col" *ngIf="vm.resource === 'labels' || vm.resource === 'statuses'">Szín</th>
+              <th scope="col" *ngIf="vm.resource === 'statuses'">Kulcs</th>
+              <th scope="col" *ngIf="vm.resource === 'statuses'">Sorrend</th>
+              <th scope="col" *ngIf="vm.resource === 'priorities'">Szint</th>
+              <th scope="col">Művelet</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of vm.rows; trackBy: trackById">
+              <td><strong>{{ row.name }}</strong></td>
+              <td *ngIf="vm.resource === 'labels' || vm.resource === 'statuses'"><span class="color-chip" [style.backgroundColor]="row.color"></span>{{ row.color }}</td>
+              <td *ngIf="vm.resource === 'statuses'"><code>{{ row.key }}</code></td>
+              <td *ngIf="vm.resource === 'statuses'">{{ row.order }}</td>
+              <td *ngIf="vm.resource === 'priorities'">{{ row.level }}</td>
+              <td class="actions">
+                <button class="link-btn" type="button" (click)="openEdit(vm.resource, row)">Szerkesztés</button>
+                <button class="link-btn danger-link" type="button" (click)="requestDelete(vm.resource, row)">Törlés</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+    <ng-template #noRows><div class="empty-state"><h2 class="state-title">Még nincs {{ vm.resource === 'labels' ? 'címke' : vm.resource === 'statuses' ? 'állapot' : 'prioritás' }}</h2><p class="state-text">Hozz létre egy új elemet.</p></div></ng-template>
+  </section>
+
+  <section class="card form-card" *ngIf="formOpen() && vm.status === 'ready'">
+    <h2>{{ editingId() ? 'Törzsadat szerkesztése' : 'Új törzsadat' }}</h2>
+    <form [formGroup]="form" (ngSubmit)="save(vm.resource, vm.rows)" novalidate>
+      <div class="field">
+        <label for="catalog-name">Név</label>
+        <input id="catalog-name" formControlName="name" maxlength="80" />
+        <p class="field-error" *ngIf="form.controls.name.invalid && (form.controls.name.touched || submitted())">A név kötelező, legfeljebb 80 karakter.</p>
+      </div>
+      <div class="form-grid" *ngIf="vm.resource === 'labels' || vm.resource === 'statuses'">
+        <div class="field">
+          <label for="catalog-color">Szín</label>
+          <input id="catalog-color" type="color" formControlName="color" />
+        </div>
+        <div class="field" *ngIf="vm.resource === 'statuses'">
+          <label for="catalog-key">Egyedi technikai kulcs</label>
+          <input id="catalog-key" formControlName="key" maxlength="40" />
+          <p class="field-error" *ngIf="form.controls.key.invalid && (form.controls.key.touched || submitted())">Kisbetűvel kezdődjön; kisbetű, szám és kötőjel használható.</p>
+        </div>
+        <div class="field" *ngIf="vm.resource === 'statuses'">
+          <label for="catalog-order">Sorrend</label>
+          <input id="catalog-order" type="number" min="1" step="1" formControlName="order" />
+          <p class="field-error" *ngIf="form.controls.order.invalid && (form.controls.order.touched || submitted())">Adj meg pozitív egész sorszámot.</p>
+        </div>
+      </div>
+      <div class="field" *ngIf="vm.resource === 'priorities'">
+        <label for="catalog-level">Prioritási szint</label>
+        <input id="catalog-level" type="number" min="1" step="1" formControlName="level" />
+        <p class="field-error" *ngIf="form.controls.level.invalid && (form.controls.level.touched || submitted())">Adj meg pozitív egész szintet.</p>
+      </div>
+      <p class="field-error" role="alert" *ngIf="saveError()">{{ saveError() }}</p>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit" [disabled]="saving() || form.invalid">{{ saving() ? 'Mentés...' : 'Mentés' }}</button>
+        <button class="btn" type="button" [disabled]="saving()" (click)="closeForm()">Mégse</button>
+      </div>
+    </form>
+  </section>
+
+  <app-confirm-dialog
+    *ngIf="pendingDelete() as pending"
+    [title]="pending.details ? 'A törzsadat nem törölhető' : 'Törlöd ezt a törzsadatot?'"
+    [subject]="pending.row.name"
+    [message]="pending.details ? 'Előbb rendezd a hivatkozott rekordokat:' : 'A művelet a kapcsolódó feladatokat is érinti.'"
+    [details]="pending.details ?? []"
+    [confirmLabel]="pending.details ? null : 'Törlés'"
+    [cancelLabel]="pending.details ? 'Bezárás' : 'Mégse'"
+    [busy]="deleteBusy()"
+    [error]="deleteError()"
+    (confirmed)="confirmDelete(vm.resource)"
+    (cancelled)="cancelDelete()"
+  />
+</ng-container>

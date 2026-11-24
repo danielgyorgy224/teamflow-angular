@@ -1,0 +1,48 @@
+.page-head,
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-head {
+  margin-bottom: 24px;
+}
+
+.form-card {
+  display: grid;
+  gap: 20px;
+  max-width: 760px;
+}
+
+.field-grid,
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  min-width: 0;
+}
+
+.state-title {
+  font-size: 18px;
+}
+
+.state-text {
+  color: var(--muted);
+}
+
+.form-actions {
+  justify-content: flex-start;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 767.98px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,1 +1,118 @@
-<h1 class="page-title">Projekt</h1>
+<ng-container *ngIf="vm$ | async as vm">
+  <ng-container [ngSwitch]="vm.status">
+    <section class="card state-card" role="status" *ngSwitchCase="'loading'">
+      <h1 class="state-title">Projekt betöltése...</h1>
+    </section>
+    <section class="card state-card" role="alert" *ngSwitchCase="'error'">
+      <h1 class="state-title">A projekt adatai nem érhetők el</h1>
+      <p class="state-text">Ellenőrizd a kiszolgálót, majd próbáld újra.</p>
+      <button type="button" class="btn btn-primary" (click)="retry()">Újrapróbálás</button>
+      <a class="btn" routerLink="/projects">Vissza a projektekhez</a>
+    </section>
+    <section class="card state-card" role="status" *ngSwitchCase="'notfound'">
+      <h1 class="state-title">A projekt nem található</h1>
+      <p class="state-text">Ilyen azonosítójú projekt nincs, vagy már törölték.</p>
+      <a class="btn btn-primary" routerLink="/projects">Vissza a projektekhez</a>
+    </section>
+    <ng-container *ngSwitchCase="'ready'">
+      <ng-container *ngIf="vm.page as page">
+        <header class="page-head">
+          <div>
+            <a class="back-link" routerLink="/projects">← Projektek</a>
+            <h1 class="page-title">{{ page.project.name }}</h1>
+            <p class="page-subtitle">Projektgazda: {{ page.ownerName }} · {{ page.project.status === 'active' ? 'Aktív' : 'Archivált' }}</p>
+          </div>
+          <a class="btn btn-primary" [routerLink]="['/projects', page.project.id, 'edit']">Projekt szerkesztése</a>
+        </header>
+
+        <p class="banner banner-ok" role="status" *ngIf="notice()">{{ notice() }}</p>
+        <p class="banner banner-err" role="alert" *ngIf="pageError()">{{ pageError() }}</p>
+
+        <section class="card project-overview">
+          <div>
+            <h2>Projektleírás</h2>
+            <p>{{ page.project.description || 'Nincs leírás.' }}</p>
+          </div>
+          <dl class="overview-meta">
+            <div><dt>Kezdés</dt><dd><time [attr.datetime]="page.project.startDate">{{ page.project.startDate | date: 'yyyy.MM.dd.' }}</time></dd></div>
+            <div><dt>Határidő</dt><dd><time [attr.datetime]="page.project.dueDate">{{ page.project.dueDate | date: 'yyyy.MM.dd.' }}</time></dd></div>
+            <div><dt>Feladatok</dt><dd>{{ page.tasks.length }}</dd></div>
+            <div><dt>Teljesítés</dt><dd>{{ page.completion }}%</dd></div>
+          </dl>
+        </section>
+
+        <div class="detail-grid">
+          <section class="card panel" aria-labelledby="members-title">
+            <div class="panel-head">
+              <div><h2 id="members-title">Projekttagok</h2><p class="muted">{{ page.members.length }} tag</p></div>
+            </div>
+            <p class="field-error" role="alert" *ngIf="memberError()">{{ memberError() }}</p>
+            <p class="field-error" role="alert" *ngIf="editError()">{{ editError() }}</p>
+            <ul class="member-list" *ngIf="page.members.length > 0; else noMembers">
+              <li class="member-row" *ngFor="let member of page.members; trackBy: trackById">
+                <div class="member-info"><strong>{{ member.userName }}</strong><small class="muted">{{ member.userEmail }}</small></div>
+                <ng-container *ngIf="editingMemberId() !== member.id; else roleForm">
+                  <span class="member-role">{{ member.role }}</span>
+                  <div class="row-actions">
+                    <button class="link-btn" type="button" (click)="startEdit(member)">Szerepkör</button>
+                    <button class="link-btn danger-link" type="button" (click)="requestRemove(member)">Eltávolítás</button>
+                  </div>
+                </ng-container>
+                <ng-template #roleForm>
+                  <form class="inline-form" (ngSubmit)="saveRole(member)" novalidate>
+                    <label class="visually-hidden" [for]="'role-' + member.id">Szerepkör</label>
+                    <input [id]="'role-' + member.id" [formControl]="editRole" maxlength="80" />
+                    <button class="btn btn-primary" type="submit" [disabled]="editBusy() || editRole.invalid">Mentés</button>
+                    <button class="btn" type="button" [disabled]="editBusy()" (click)="cancelEdit()">Mégse</button>
+                  </form>
+                </ng-template>
+              </li>
+            </ul>
+            <ng-template #noMembers><p class="muted">Még nincsenek projekttagok.</p></ng-template>
+
+            <form class="add-member-form" [formGroup]="addMemberForm" (ngSubmit)="addMember(page.project.id, page.users, page.members)" novalidate>
+              <h3>Tag hozzáadása</h3>
+              <div class="field">
+                <label for="member-user">Csapattag</label>
+                <select id="member-user" formControlName="userId">
+                  <option [ngValue]="null">Válassz felhasználót</option>
+                  <option *ngFor="let user of page.users; trackBy: trackById" [ngValue]="user.id" [disabled]="page.members.some(m => m.userId === user.id)">{{ user.name }}</option>
+                </select>
+                <p class="field-error" *ngIf="addMemberForm.controls.userId.invalid && (addMemberForm.controls.userId.touched || submitted())">Válassz csapattagot.</p>
+              </div>
+              <div class="field">
+                <label for="member-role">Projektbeli szerepkör</label>
+                <input id="member-role" formControlName="role" maxlength="80" />
+                <p class="field-error" *ngIf="addMemberForm.controls.role.invalid && (addMemberForm.controls.role.touched || submitted())">A szerepkör nem lehet üres, legfeljebb 80 karakter.</p>
+              </div>
+              <button class="btn btn-primary" type="submit" [disabled]="memberBusy()">{{ memberBusy() ? 'Mentés...' : 'Tag hozzáadása' }}</button>
+            </form>
+          </section>
+
+          <section class="card panel" aria-labelledby="tasks-title">
+            <div class="panel-head"><h2 id="tasks-title">Projektfeladatok</h2><a class="btn" [routerLink]="['/tasks']" [queryParams]="{ projectId: page.project.id }">Feladatok szűrése</a></div>
+            <div class="task-list" *ngIf="page.tasks.length > 0; else noTasks">
+              <article class="task-row" *ngFor="let task of page.tasks; trackBy: trackById">
+                <div><a [routerLink]="['/tasks', task.id]"><strong>{{ task.title }}</strong></a><small>#{{ task.id }} · <time [attr.datetime]="task.dueDate">{{ task.dueDate | date: 'yyyy.MM.dd.' }}</time></small></div>
+                <span class="pill tint" [style.--pill]="task.statusColor">{{ task.statusName }}</span>
+              </article>
+            </div>
+            <ng-template #noTasks><p class="muted">Ehhez a projekthez még nem tartozik feladat.</p></ng-template>
+          </section>
+        </div>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+
+  <app-confirm-dialog
+    *ngIf="pendingRemove() as member"
+    title="Eltávolítod a projekttagot?"
+    [subject]="member.userName"
+    message="A felhasználó kikerül ebből a projektből."
+    confirmLabel="Eltávolítás"
+    [busy]="removeBusy()"
+    [error]="removeError()"
+    (confirmed)="confirmRemove()"
+    (cancelled)="cancelRemove()"
+  />
+</ng-container>
